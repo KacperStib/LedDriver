@@ -1,0 +1,16 @@
+[1/5] cmd.exe /C "cd /D C:\esp-idf\workspace\LedDriver\build\esp-idf\esptool_py && C:\esp-idf\Espressif\python_env\idf5.3_py3.11_env\Scripts\python.exe C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/esp-idf/workspace/LedDriver/build/partition_table/partition-table.bin C:/esp-idf/workspace/LedDriver/build/app-template.bin"
+app-template.bin binary size 0x2fa50 bytes. Smallest app partition is 0x100000 bytes. 0xd05b0 bytes (81%) free.
+[2/5] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D C:\esp-idf\workspace\LedDriver\build\bootloader\esp-idf\esptool_py && C:\esp-idf\Espressif\python_env\idf5.3_py3.11_env\Scripts\python.exe C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/esp-idf/workspace/LedDriver/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5180 bytes. 0x2e80 bytes (36%) free.
+[2/3] cmd.exe /C "cd /D C:\esp-idf\Espressif\frameworks\esp-idf-v5.3.1\components\esptool_py && C:\esp-idf\Espressif\tools\cmake\3.24.0\bin\cmake.exe -D IDF_PATH=C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1 -D SERIAL_TOOL=C:/esp-idf/Espressif/python_env/idf5.3_py3.11_env/Scripts/python.exe;;C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1/components/esptool_py/esptool/esptool.py;--chip;esp32c3 -D SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args -D WORKING_DIRECTORY=C:/esp-idf/workspace/LedDriver/build -P C:/esp-idf/Espreesptool.py --chip esp32c3 -p COM6 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB 0x0 bootloader/bootloader.bin 0x10000 app-template.bin 0x8000 partition_table/partition-table.bin
+esptool.py v4.8.1
+Serial port COM6
+
+A fatal error occurred: Could not open COM6, the port is busy or doesn't exist.
+(could not open port 'COM6': PermissionError(13, 'Odmowa dostŕpu.', None, 5))
+
+ssif/frameworks/esp-idf-v5.3.1/components/esptool_py/run_serial_tool.cmake"
+FAILED: CMakeFiles/flash C:/esp-idf/workspace/LedDriver/build/CMakeFiles/flash 
+cmd.exe /C "cd /D C:\esp-idf\Espressif\frameworks\esp-idf-v5.3.1\components\esptool_py && C:\esp-idf\Espressif\tools\cmake\3.24.0\bin\cmake.exe -D IDF_PATH=C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1 -D SERIAL_TOOL=C:/esp-idf/Espressif/python_env/idf5.3_py3.11_env/Scripts/python.exe;;C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1/components/esptool_py/esptool/esptool.py;--chip;esp32c3 -D SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args -D WORKING_DIRECTORY=C:/esp-idf/workspace/LedDriver/build -P C:/esp-idf/Espressif/frameworks/esp-idf-v5.3.1/components/esptool_py/run_serial_tool.cmake"
+ninja: build stopped: subcommand failed.
