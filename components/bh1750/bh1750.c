@@ -19,9 +19,10 @@ uint16_t bh1750_read(){
 	if (err != ESP_OK)
     	ESP_LOGE("BH1750", "I2C CMD ERROR: 0x%x", err);
     	
-	for(int i = 0; i < 2 ; i++)
-    	printf(" %d ", buf[i]);
-    printf("\n");	
+	//for(int i = 0; i < 2 ; i++)
+    	//printf(" %d ", buf[i]);
+    //printf("\n");	
+    
 	// konwersja na luksy
 	lux = (buf[0] << 8) | buf[1];
     lux = (lux * 10) / 12;

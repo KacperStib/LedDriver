@@ -5,7 +5,7 @@ void SHT41measurment(float* T, float* RH){
   uint8_t buf[6];
   i2c_write_reg(SHT41_ADRESS, MED_PREC_MEAS);
   // delay zalezny od DATASHEETu
-  delay(10);
+  vTaskDelay(pdMS_TO_TICKS(10));
   i2c_read(SHT41_ADRESS, buf, 6);
 
   // value = MSB * 256 + LSB
