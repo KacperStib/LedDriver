@@ -77,7 +77,7 @@ esp_err_t i2c_read(uint8_t ADDR, uint8_t *buf, uint8_t bytesToReceive){
 	// adres slave'a
 	i2c_master_write_byte(cmd, (ADDR << 1) | I2C_MASTER_READ, ACK_EN);
 	// odczytaj do bufora
-	i2c_master_read(cmd, buf, bytesToReceive -1 , I2C_MASTER_LAST_NACK);
+	i2c_master_read(cmd, buf, bytesToReceive, I2C_MASTER_LAST_NACK);
 	// NACK
 	//i2c_master_read_byte(cmd, buf + bytesToReceive - 1, ACK_DIS);
 	// bit stopu

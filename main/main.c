@@ -7,6 +7,7 @@
 #include "i2c.h"
 #include "bh1750.h"
 #include "sht40.h"
+#include "ledcDriver.h"
 //#include "../components/i2c/include/i2c.h"
 //#include "../components/bh1750/include/bh1750.h"
 
@@ -32,6 +33,16 @@ void read_temp(){
 	}
 }
 
+void led_task(){
+	for(;;){
+		led_write(dutyCycle);
+		vTaskDelay(pdMS_TO_TICKS(2000));
+		dutyCycle += 20;
+		if(dutyCycle > 250)
+			dutyCycle = 0;
+	}
+}
+
 void app_main(void)
 {	
 	// inicjalizacja magistrali
@@ -44,7 +55,12 @@ void app_main(void)
     	ESP_LOGE("BH1750", "I2C CMD ERROR: 0x%x", err);
     	
 	vTaskDelay(200 / portTICK_PERIOD_MS);
+	
+	// config led
+	led_config();
+
 	// cykliczny odczyt
 	xTaskCreatePinnedToCore(read_lux, "lux", 4096, NULL, 1, NULL, 0);
 	//xTaskCreatePinnedToCore(read_temp, "temp", 4096, NULL, 2, NULL, 0);
+	xTaskCreatePinnedToCore(led_task, "led", 4096, NULL, 2, NULL, 0);
 }
