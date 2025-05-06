@@ -409,7 +409,7 @@ CONFIG_PARTITION_TABLE_MD5=y
 #
 # Example Configuration
 #
-CONFIG_ESP_WIFI_SSID="Slosarczyk_Dom"
+CONFIG_ESP_WIFI_SSID="Slosarczyk_dom"
 CONFIG_ESP_WIFI_PASSWORD="MaciekKazek2"
 # end of Example Configuration
 
