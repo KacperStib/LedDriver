@@ -18,11 +18,11 @@
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 
-uint16_t lux = 0;
+int lux = 0;
 float temp = 0.0, RH = 0.0;
 
-#define WIFI_SSID      "FunBox2-6EFF"
-#define WIFI_PASS      "94174E6E297439DAAD2D35946F"
+#define WIFI_SSID      "Slosarczyk_Dom"
+#define WIFI_PASS      "MaciekKazek2"
 
 static const char *TAG = "wifi station";
 
@@ -88,14 +88,13 @@ void app_main(void)
 	// Uruchomienie połączenia WiFi
 	wifi_init_sta();
 
-	// Uruchomienie serwera HTTP
-	start_webserver();
-
 	httpd_handle_t server = start_webserver();
-	/*while(server){
-		//vTaskDelay(200 / portTICK_PERIOD_MS);
-		sleep(5);
-	}*/
+	if (server == NULL) {
+	    ESP_LOGE("MAIN", "Webserver failed to start!");
+	}
+	while(server){
+		vTaskDelay(pdMS_TO_TICKS(100));
+	}
 	// cykliczny odczyt
 	//xTaskCreatePinnedToCore(read_lux, "lux", 4096, NULL, 1, NULL, 0);
 	//xTaskCreatePinnedToCore(read_temp, "temp", 4096, NULL, 2, NULL, 0);
