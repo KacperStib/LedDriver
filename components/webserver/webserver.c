@@ -10,29 +10,103 @@
 // HTML strona do serwowania
 const char index_html[] = R"rawliteral(
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Swiatlo</title>
+  <title>Sterowanie Oświetleniem</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-top: 30px;
+      border-left: 5px solid #3498db;
+      padding-left: 10px;
+    }
+
+    .section {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    input[type=range] {
+      width: 100%;
+      margin-top: 10px;
+      appearance: none;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #3498db;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      margin-top: -5px;
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: #3498db;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    #dutyValue {
+      font-weight: bold;
+      color: #2980b9;
+    }
+  </style>
 </head>
 <body>
- <h2>Sterowanie oswietleniem</h2>
-  <p>Aktualna wartosc: <span id="dutyValue">128</span></p>
-  <input type="range" min="0" max="255" value="128" id="dutySlider" oninput="updateDutyCycle(this.value)">
-  
-  <h2>Pomiar swiatla</h2>
-  <p>Aktualna wartosc luksow: <span id="luxValue">0.0</span> lx</p>
+  <div class="section">
+    <h2>Sterowanie oświetleniem</h2>
+    <p>Aktualna wartość: <span id="dutyValue">128</span></p>
+    <input type="range" min="0" max="255" value="128" id="dutySlider" oninput="updateDutyCycle(this.value)">
+  </div>
 
-  <h2>Pomiar pradu i mocy</h2>
-  <p>Aktualny prad: <span id="currentValue">0.0</span> mA</p>
-  <p>Aktualna moc: <span id="powerValue">0.0</span> mW</p>
+  <div class="section">
+    <h2>Pomiar światła</h2>
+    <p>Aktualna wartość luksów: <span id="luxValue">0.0</span> lx</p>
+  </div>
 
-  <h2>Pomiar temperatury i wilgotnosci</h2>
-  <p>Aktualna temperatura: <span id="tempValue">0.0</span> °C</p>
-  <p>Aktualna wilgotnosc: <span id="humidityValue">0.0</span> %</p>
+  <div class="section">
+    <h2>Pomiar prądu i mocy</h2>
+    <p>Aktualny prąd: <span id="currentValue">0.0</span> mA</p>
+    <p>Aktualna moc: <span id="powerValue">0.0</span> mW</p>
+  </div>
 
-  <h2>Pomiar PIR</h2>
-  <p>Czas od ostatniego wykrycia ruchu: <span id="pirValue">0</span> sekund</p>
+  <div class="section">
+    <h2>Pomiar temperatury i wilgotności</h2>
+    <p>Aktualna temperatura: <span id="tempValue">0.0</span> °C</p>
+    <p>Aktualna wilgotność: <span id="humidityValue">0.0</span> %</p>
+  </div>
+
+  <div class="section">
+    <h2>Pomiar PIR</h2>
+    <p>Czas od ostatniego wykrycia ruchu: <span id="pirValue">0</span> sekund</p>
+  </div>
 
   <script>
     function updateDutyCycle(value) {
@@ -84,21 +158,18 @@ const char index_html[] = R"rawliteral(
       fetch('/getPIR')
         .then(response => response.text())
         .then(data => {
-          console.log(data);
           document.getElementById('pirValue').innerText = data;
         });
     }
 
     function initializeValues() {
-      // Pobranie aktualnej wartości dutyCycle z serwera
       fetch('/getDuty')
         .then(response => response.text())
         .then(data => {
           document.getElementById('dutyValue').innerText = data;
           document.getElementById('dutySlider').value = data;
         });
-  
-      // Zainicjowanie pozostałych wartości
+
       updateLux();
       updateCurrent();
       updatePower();
@@ -114,11 +185,11 @@ const char index_html[] = R"rawliteral(
     setInterval(updateHumidity, 5000);
     setInterval(updatePIR, 5000);
 
-    // Wywołanie funkcji inicjalizującej po załadowaniu strony
     window.onload = initializeValues;
   </script>
 </body>
 </html>
+
 )rawliteral";
 
 esp_err_t get_handler(httpd_req_t *req)
@@ -326,7 +397,10 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &get_temp_uri);
         httpd_register_uri_handler(server, &get_humidity_uri);
         httpd_register_uri_handler(server, &get_pir_uri);
-    }
+   		ESP_LOGI("WEBSERVER", "All URI handlers registered");
+	} else {
+	    ESP_LOGE("WEBSERVER", "Failed to start server");
+	}
     return server;
 }
 

@@ -21,8 +21,8 @@
 uint16_t lux = 0;
 float temp = 0.0, RH = 0.0;
 
-#define WIFI_SSID      "Slosarczyk_Dom"
-#define WIFI_PASS      "MaciekKazek2"
+#define WIFI_SSID      "FunBox2-6EFF"
+#define WIFI_PASS      "94174E6E297439DAAD2D35946F"
 
 static const char *TAG = "wifi station";
 
