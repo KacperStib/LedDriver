@@ -36,6 +36,7 @@ void wifi_init_sta(void) {
     esp_wifi_set_mode(WIFI_MODE_STA);
     esp_wifi_start();
 
+    esp_wifi_set_ps(WIFI_PS_NONE);
     wifi_config_t wifi_config = {
         .sta = {
             .ssid = WIFI_SSID,
@@ -91,9 +92,6 @@ void app_main(void)
 	httpd_handle_t server = start_webserver();
 	if (server == NULL) {
 	    ESP_LOGE("MAIN", "Webserver failed to start!");
-	}
-	while(server){
-		vTaskDelay(pdMS_TO_TICKS(100));
 	}
 	// cykliczny odczyt
 	//xTaskCreatePinnedToCore(read_lux, "lux", 4096, NULL, 1, NULL, 0);
