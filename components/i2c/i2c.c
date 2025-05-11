@@ -90,5 +90,25 @@ esp_err_t i2c_read(uint8_t ADDR, uint8_t *buf, uint8_t bytesToReceive){
 
 // zapis dwoch bajtow 
 esp_err_t i2c_write_2byte(uint8_t ADDR, uint8_t REG, uint16_t VAL){
+	// Podział 2 bajtow uint16_t do przeslania na 2 odzielne bajty uint8_t
+	uint8_t bytes[2];
+  	bytes[0] = VAL >> 8;
+  	bytes[1] = VAL & 0xFF;
+	// zabranie zasobow
+	cmd = i2c_cmd_link_create();
+	// bit startu
+	i2c_master_start(cmd);
+	// adres slave'a
+	i2c_master_write_byte(cmd, (ADDR << 1) | I2C_MASTER_WRITE, ACK_EN);
+	// rejestr
+	i2c_master_write_byte(cmd, REG, ACK_EN);
+	// dane
+	i2c_master_write_byte(cmd, bytes[0], ACK_EN);
+	i2c_master_write_byte(cmd, bytes[1], ACK_EN);
+	// bit stopu
+	i2c_master_stop(cmd);
+	// odlozenie zasobow
+	err = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, pdMS_TO_TICKS(1000));
+	i2c_cmd_link_delete(cmd);
 	return err;
 }
