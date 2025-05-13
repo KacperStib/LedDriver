@@ -85,6 +85,22 @@ const char index_html[] = R"rawliteral(
     <h2>Pomiar światła</h2>
     <p>Aktualna wartość luksów: <span id="luxValue">0.0</span> lx</p>
   </div>
+  
+  <div class="section">
+    <h2>Pomiar PIR</h2>
+    <label>
+      <input type="checkbox" name="enablePir" id="pirCheckbox">
+      Detekcja ruchu
+    </label>
+    <label>
+      <input type="number" class="tab" min="1" max="10" id="pirTime">
+      <button id="submit" name="submit"> Potwierdź </button>
+    </label>
+    
+    <p>Czas od ostatniego wykrycia ruchu: <span id="pirValue">0</span> sekund</p>
+  </div>
+  
+
 
   <div class="section">
     <h2>Pomiar prądu i mocy</h2>
@@ -97,13 +113,9 @@ const char index_html[] = R"rawliteral(
     <p>Aktualna temperatura: <span id="tempValue">0.0</span> °C</p>
     <p>Aktualna wilgotność: <span id="humidityValue">0.0</span> %</p>
   </div>
-
-  <div class="section">
-    <h2>Pomiar PIR</h2>
-    <p>Czas od ostatniego wykrycia ruchu: <span id="pirValue">0</span> sekund</p>
-  </div>
-
+  
   <script>
+
   
   	function switchMode(mode) {
       if (mode === 'manual') {
@@ -124,7 +136,7 @@ const char index_html[] = R"rawliteral(
       document.getElementById('setLuxValue').innerText = e.target.value;
     });
   
-    function updateDutyCycle(value) {
+      function updateDutyCycle(value) {
       document.getElementById('dutyValue').innerText = value;
       fetch(`/setDuty?value=${value}`);
     }

@@ -21,8 +21,8 @@
 int lux = 0;
 float temp = 0.0, RH = 0.0;
 
-#define WIFI_SSID      "Slosarczyk_Dom"
-#define WIFI_PASS      "MaciekKazek2"
+#define WIFI_SSID      "KacperRouter"
+#define WIFI_PASS      "dupa1231"
 
 static const char *TAG = "wifi station";
 
