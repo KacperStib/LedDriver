@@ -1,5 +1,6 @@
 #include "ina219.h"
 
+// Parametry do konfiguracji - podstawowe parametry
 uint8_t ina_range = 0b1; // 32 V
 uint8_t ina_gain = 0b11; // 320 mV
 uint8_t ina_b_res = 0b0011; // 12 bit
@@ -12,6 +13,7 @@ esp_err_t ina219_power_on(float shuntVAL, float iMAX){
 	// konfiguracja
 	uint16_t config = 0;
 	config |= (ina_range << 13 | ina_gain << 11 | ina_b_res << 7 | ina_s_res << 3 | ina_mode);
+	// Zapis koniguracji
 	err = i2c_write_2byte(INA219_ADDR, INA219_REG_CONFIG, config);
 	// kalibracja
 	uint16_t calibrationValue;
@@ -31,12 +33,13 @@ esp_err_t ina219_power_on(float shuntVAL, float iMAX){
     powerLSB = currentLSB * 20;
 
     calibrationValue = (uint16_t)((0.04096) / (currentLSB * shuntVAL));
-	
+	// Zapis kalibracji
 	err = i2c_write_2byte(INA219_ADDR, INA219_REG_CALIBRATION, calibrationValue);
 
     return err;
 }
 
+// Prosty odczyt napiecia
 float ina219_read_voltage(){
 	uint8_t buf[2];
 	i2c_write_reg(INA219_ADDR, INA219_REG_BUSVOLTAGE);
@@ -47,6 +50,7 @@ float ina219_read_voltage(){
   	return ((voltage >> 3) * 4 * 0.001);
 }
 
+// Prosty odzczyt pradu
 float ina219_read_current(){
 	uint8_t buf[2];
 	i2c_write_reg(INA219_ADDR, INA219_REG_CURRENT);
@@ -56,6 +60,7 @@ float ina219_read_current(){
 	return current * currentLSB;
 }
 
+// Prostu odczyt mocy
 float ina219_read_power(){
 	uint8_t buf[2];
 	i2c_write_reg(INA219_ADDR, INA219_REG_POWER);

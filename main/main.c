@@ -34,7 +34,7 @@ void measure_task(){
 		printf("Lux: %d\n", lux);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Temp and RH
-		SHT41measurment(&temp, &RH);
+		SHT40measurment(&temp, &RH);
 		printf("Temperature: %f\nRH: %f\n", temp, RH);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Movement
