@@ -14,18 +14,56 @@
 #include "m24c08.h"
 //#include "../components/i2c/include/i2c.h"
 //#include "../components/bh1750/include/bh1750.h"
+#include "webserver.h"
+#include "esp_system.h"
+#include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "esp_wifi.h"
+#include "nvs_flash.h"
+
+#define WIFI_SSID      "KacperRouter"
+#define WIFI_PASS      "dupa1231"
+static const char *TAG = "wifi station";
 
 uint16_t lux = 0;
 
 float temp = 0.0, RH = 0.0;
 
-uint16_t pirSeconds = 0;
-
 float current = 0.0, power = 0.0;
 
-bool xAuto = false;
+uint8_t xAuto = 0;
+
+uint16_t pirSeconds = 0;
+uint8_t xPir = 0;
+uint16_t pirTime = 0;
+
 uint16_t luxSetpoint = 0;
 uint8_t dt = 0.1;
+
+// Inicjalizacja polaczenia do wifi
+void wifi_init_sta(void) {
+    esp_netif_init();
+    esp_event_loop_create_default();
+    esp_netif_create_default_wifi_sta();
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&cfg);
+
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_start();
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = WIFI_SSID,
+            .password = WIFI_PASS,
+        },
+    };
+
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+    esp_wifi_connect();
+    ESP_LOGI(TAG, "Connecting to WiFi...");
+}
 
 void measure_task(){
 	for(;;){
@@ -70,8 +108,50 @@ void pid_task(){
 	}
 }
 
+void write_to_server(){
+	for(;;){
+		server_data.lux = lux;
+		server_data.temp = temp;
+		server_data.rh = RH;
+		server_data.current = current;
+		server_data.power = power;
+		server_data.power_usage = 0;
+		server_data.last_movement = pirSeconds;
+	}
+}
+
+void read_from_server(){
+	for(;;){
+		xAuto = server_data.mode;
+		// Zaleznie od wybranego trybu
+		if (xAuto == 0)
+			dutyCycle = server_data.duty;
+		else if (xAuto == 1)
+			luxSetpoint = server_data.duty;
+			
+		xPir = server_data.pir_on_off;
+		pirTime = server_data.hold_up_time;
+	}
+}
+
 void app_main(void)
 {	
+	// Inicjalizacja pamięci NVS
+	esp_err_t ret = nvs_flash_init();
+	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		ret = nvs_flash_init();
+	}
+	ESP_ERROR_CHECK(ret);
+
+	// Uruchomienie połączenia WiFi
+	wifi_init_sta();
+	
+	// Uruchomienie webservera
+	httpd_handle_t server = start_webserver();
+	if (server == NULL) {
+	    ESP_LOGE("MAIN", "Webserver failed to start!");
+	}
 	// inicjalizacja magistrali
 	if (i2c_master_init() == ESP_OK)
 		printf("I2C INIT OK\n");
