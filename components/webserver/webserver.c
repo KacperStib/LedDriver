@@ -7,6 +7,30 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+// Inicjalizacja polaczenia do wifi
+void wifi_init_sta(void) {
+    esp_netif_init();
+    esp_event_loop_create_default();
+    esp_netif_create_default_wifi_sta();
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    esp_wifi_init(&cfg);
+
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_start();
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = WIFI_SSID,
+            .password = WIFI_PASS,
+        },
+    };
+
+    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+    esp_wifi_connect();
+    ESP_LOGI(TAG, "Connecting to WiFi...");
+}
+
 // Struktura danych
 web_server_data server_data;
 
@@ -251,8 +275,8 @@ esp_err_t set_duty_handler(httpd_req_t *req) {
         char query[100];
         httpd_req_get_url_query_str(req, query, sizeof(query));
         if (httpd_query_key_value(query, "value", param, sizeof(param)) == ESP_OK) {
-            int duty = atoi(param);
-            ESP_LOGI("SET_DUTY", "Nowa wartosc: %d", duty);
+            server_data.duty = atoi(param);
+            //ESP_LOGI("SET_DUTY", "Nowa wartosc: %d", duty);
         }
     }
 
@@ -266,8 +290,8 @@ esp_err_t set_mode_handler(httpd_req_t *req) {
         char query[100];
         httpd_req_get_url_query_str(req, query, sizeof(query));
         if (httpd_query_key_value(query, "value", param, sizeof(param)) == ESP_OK) {
-            int mode = atoi(param);
-                ESP_LOGI("SET_MODE", "Nowy tryb: %d", mode);
+            server_data.mode = atoi(param);
+                //ESP_LOGI("SET_MODE", "Nowy tryb: %d", mode);
         }
     }
 
@@ -281,8 +305,8 @@ esp_err_t set_lux_handler(httpd_req_t *req) {
         char query[100];
         httpd_req_get_url_query_str(req, query, sizeof(query));
         if (httpd_query_key_value(query, "value", param, sizeof(param)) == ESP_OK) {
-            float set_lux = atof(param);
-            ESP_LOGI("SET_SET_LUX", "Nowa wartość zadana luksów: %.1f", set_lux);
+            server_data.lux_sp = atof(param);
+            //ESP_LOGI("SET_SET_LUX", "Nowa wartość zadana luksów: %.1f", set_lux);
         }
     }
     httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);

@@ -1,5 +1,16 @@
 #include "esp_err.h"
 #include "esp_http_server.h"
+#include "esp_system.h"
+#include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "esp_wifi.h"
+
+#define WIFI_SSID      "STIBDOM"
+#define WIFI_PASS      "kacper24"
+static const char *TAG = "wifi station";
+// Inicjalizacja wifi
+void wifi_init_sta(void);
 
 // Deklaracje funkcji obsługujących zapytania GET i POST
 esp_err_t get_handler(httpd_req_t *req);
@@ -26,6 +37,7 @@ extern httpd_uri_t get_pir_uri;
 typedef struct {
 	uint8_t mode;
 	uint16_t duty;
+	uint16_t lux_sp;
 	uint16_t lux;
 	float temp;
 	float rh;

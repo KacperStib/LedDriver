@@ -7,7 +7,7 @@
 #include "driver/gpio.h"
 #include <esp_timer.h>
 
-#define PIR_PIN 6
+#define PIR_PIN 1
 
 extern volatile uint64_t pirMillis;
 

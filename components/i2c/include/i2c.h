@@ -14,7 +14,7 @@
 #define ACK_EN 1
 #define ACK_DIS 0
 
-extern i2c_cmd_handle_t cmd;
+//extern i2c_cmd_handle_t cmd;
 extern esp_err_t err;
 
 // inicjalizacja magistrali

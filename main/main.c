@@ -12,19 +12,9 @@
 #include "pid.h"
 #include "ina219.h"
 #include "m24c08.h"
-//#include "../components/i2c/include/i2c.h"
-//#include "../components/bh1750/include/bh1750.h"
-#include "webserver.h"
-#include "esp_system.h"
-#include "esp_log.h"
-#include "esp_netif.h"
-#include "esp_event.h"
-#include "esp_wifi.h"
-#include "nvs_flash.h"
 
-#define WIFI_SSID      "KacperRouter"
-#define WIFI_PASS      "dupa1231"
-static const char *TAG = "wifi station";
+#include "webserver.h"
+#include "nvs_flash.h"
 
 uint16_t lux = 0;
 
@@ -39,38 +29,16 @@ uint8_t xPir = 0;
 uint16_t pirTime = 0;
 
 uint16_t luxSetpoint = 0;
-uint8_t dt = 0.1;
-
-// Inicjalizacja polaczenia do wifi
-void wifi_init_sta(void) {
-    esp_netif_init();
-    esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&cfg);
-
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_start();
-
-    esp_wifi_set_ps(WIFI_PS_NONE);
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = WIFI_SSID,
-            .password = WIFI_PASS,
-        },
-    };
-
-    esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
-    esp_wifi_connect();
-    ESP_LOGI(TAG, "Connecting to WiFi...");
-}
+float dt = 0.2;
 
 void measure_task(){
 	for(;;){
-		// Lux
-		lux = bh1750_read();
-		printf("Lux: %d\n", lux);
-		vTaskDelay(pdMS_TO_TICKS(100));
+		// Lux - tylko jesli nie uzywamy PIDa
+		if(!xAuto){
+			lux = bh1750_read();
+			printf("Lux: %d\n", lux);
+			vTaskDelay(pdMS_TO_TICKS(100));
+		}
 		// Temp and RH
 		SHT40measurment(&temp, &RH);
 		printf("Temperature: %f\nRH: %f\n", temp, RH);
@@ -80,31 +48,40 @@ void measure_task(){
 		printf("Last PIR movement: %d\n", pirSeconds);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Power
-		current = ina219_read_current();
-		power = ina219_read_power();
+		current = ina219_read_current() * 1000;
+		power = ina219_read_power() * 1000;
 		printf("Current: %f\nPower: %f\n", current, power);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Wait
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 }
 
 void led_task(){
 	for(;;){
-		led_write(dutyCycle);
+		// Tryb czujnika ruchu
+		if(xPir){
+			if(pirSeconds < pirTime)
+				led_write(dutyCycle);
+			else
+ 				led_write(0);
+		}
+		else
+			led_write(dutyCycle);
+			
 		vTaskDelay(pdMS_TO_TICKS(2000));
-		dutyCycle += 20;
-		if(dutyCycle > 250)
-			dutyCycle = 0;
 	}
 }
 
 void pid_task(){
 	for(;;){
 		if(xAuto){
-			dutyCycle = pid_compute(&pid, luxSetpoint, lux, dt);
+			dutyCycle = pid_compute(luxSetpoint, lux, dt);
+			// Lux
+			lux = bh1750_read();
 		}
-		vTaskDelay(pdMS_TO_TICKS(dt));
+		printf("LUX SP: %d, DUTY: %d\n", luxSetpoint,dutyCycle);
+		vTaskDelay(pdMS_TO_TICKS(200));
 	}
 }
 
@@ -117,6 +94,7 @@ void write_to_server(){
 		server_data.power = power;
 		server_data.power_usage = 0;
 		server_data.last_movement = pirSeconds;
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -125,12 +103,13 @@ void read_from_server(){
 		xAuto = server_data.mode;
 		// Zaleznie od wybranego trybu
 		if (xAuto == 0)
-			dutyCycle = server_data.duty;
+			dutyCycle = server_data.duty * 2.56;
 		else if (xAuto == 1)
-			luxSetpoint = server_data.duty;
+			luxSetpoint = server_data.lux_sp;
 			
 		xPir = server_data.pir_on_off;
 		pirTime = server_data.hold_up_time;
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -181,5 +160,8 @@ void app_main(void)
 	// cykliczny odczyt
 	xTaskCreatePinnedToCore(measure_task, "measure", 4096, NULL, 1, NULL, 0);
 	xTaskCreatePinnedToCore(led_task, "led", 4096, NULL, 2, NULL, 0);
-	//xTaskCreatePinnedToCore(pid_task, "pid", 4096, NULL, 3, NULL, 0);
+	xTaskCreatePinnedToCore(pid_task, "pid", 4096, NULL, 3, NULL, 0);
+	xTaskCreatePinnedToCore(write_to_server, "server_write", 4096, NULL, 4, NULL, 0);
+	xTaskCreatePinnedToCore(read_from_server, "server_read", 4096, NULL, 5, NULL, 0);
+	
 }

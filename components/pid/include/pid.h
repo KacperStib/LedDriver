@@ -1,13 +1,11 @@
 #include <stdio.h>
 
-typedef struct {
-    float kp;
-    float ki;
-    float kd;
-    float previous_error;
-    float integral;
-} pid_controller_t;
+extern float kp;
+extern float ki;
+extern float kd;
+extern float error;
+extern float previous_error;
+extern float integral;
+extern float derivative;
 
-extern pid_controller_t pid;
-
-uint8_t pid_compute(pid_controller_t *pid, float setpoint, float measured, float dt);
+uint8_t pid_compute(float setpoint, float measured, float dt);

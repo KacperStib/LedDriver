@@ -2,7 +2,6 @@
 
 // infomracja czy odczyt czy zapis przez mastera jest w LSB adresu slavea
 
-i2c_cmd_handle_t cmd = NULL;
 esp_err_t err = ESP_OK;
 
 // inicjalizacja
@@ -33,7 +32,7 @@ esp_err_t i2c_master_init(void)
 // zapis jednego bajtu
 esp_err_t i2c_write_reg(uint8_t ADDR, uint8_t REG){
 	// zabranie zasobow
-	cmd = i2c_cmd_link_create();
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 	// bit startu
 	i2c_master_start(cmd);
 	// adres slave'a
@@ -51,7 +50,7 @@ esp_err_t i2c_write_reg(uint8_t ADDR, uint8_t REG){
 // zapis jednego bajtu do rejestru
 esp_err_t i2c_write_val(uint8_t ADDR, uint8_t REG, uint8_t VAL){
 	// zabranie zasobow
-	cmd = i2c_cmd_link_create();
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 	// bit startu
 	i2c_master_start(cmd);
 	// adres slave'a
@@ -71,7 +70,7 @@ esp_err_t i2c_write_val(uint8_t ADDR, uint8_t REG, uint8_t VAL){
 // odczyt do bufora
 esp_err_t i2c_read(uint8_t ADDR, uint8_t *buf, uint8_t bytesToReceive){
 	// zabranie zasobow
-	cmd = i2c_cmd_link_create();
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 	// bit startu
 	i2c_master_start(cmd);
 	// adres slave'a
@@ -95,7 +94,7 @@ esp_err_t i2c_write_2byte(uint8_t ADDR, uint8_t REG, uint16_t VAL){
   	bytes[0] = VAL >> 8;
   	bytes[1] = VAL & 0xFF;
 	// zabranie zasobow
-	cmd = i2c_cmd_link_create();
+	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 	// bit startu
 	i2c_master_start(cmd);
 	// adres slave'a

@@ -49,7 +49,7 @@ void led_config(){
 
 void led_write(uint8_t dutyCycle){
     // Ustawienie wartosci
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, mapLogCurve[dutyCycle]);
+    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, dutyCycle);
     // Wyslanie wartosci
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 }
