@@ -15,6 +15,7 @@ esp_err_t ina219_power_on(float shuntVAL, float iMAX){
 	config |= (ina_range << 13 | ina_gain << 11 | ina_b_res << 7 | ina_s_res << 3 | ina_mode);
 	// Zapis koniguracji
 	err = i2c_write_2byte(INA219_ADDR, INA219_REG_CONFIG, config);
+	
 	// kalibracja
 	uint16_t calibrationValue;
 
@@ -23,12 +24,17 @@ esp_err_t ina219_power_on(float shuntVAL, float iMAX){
     iMaxPossible = 0.32f / shuntVAL;
 
     minimumLSB = iMAX / 32767;
-
-    currentLSB = (uint16_t)(minimumLSB * 100000000);
+	
+	// While this value yields the highest resolution, it is common to select a value for
+	// the Current_LSB to the nearest round number above this value to simplify the conversion of the Current Register
+	// (04h) and Power Register (03h) to amperes and watts respectively
+    /*currentLSB = (uint16_t)(minimumLSB * 100000000);
     currentLSB /= 100000000;
     currentLSB /= 0.0001;
     currentLSB = ceil(currentLSB);
-    currentLSB *= 0.0001;
+    currentLSB *= 0.0001;*/
+    
+	currentLSB = ceil(minimumLSB / 0.0001f) * 0.0001f;
 
     powerLSB = currentLSB * 20;
 

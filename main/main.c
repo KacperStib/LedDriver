@@ -26,7 +26,7 @@ uint8_t xAuto = 0;
 
 uint16_t pirSeconds = 0;
 uint8_t xPir = 0;
-uint16_t pirTime = 0;
+uint16_t pirTime = 15;
 
 uint16_t luxSetpoint = 0;
 float dt = 0.2;
@@ -36,21 +36,21 @@ void measure_task(){
 		// Lux - tylko jesli nie uzywamy PIDa
 		if(!xAuto){
 			lux = bh1750_read();
-			printf("Lux: %d\n", lux);
+			//printf("Lux: %d\n", lux);
 			vTaskDelay(pdMS_TO_TICKS(100));
 		}
 		// Temp and RH
 		SHT40measurment(&temp, &RH);
-		printf("Temperature: %f\nRH: %f\n", temp, RH);
+		//printf("Temperature: %f\nRH: %f\n", temp, RH);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Movement
 		pirSeconds = ((esp_timer_get_time() / 1000) - pirMillis) / 1000;
-		printf("Last PIR movement: %d\n", pirSeconds);
+		//printf("Last PIR movement: %d\n", pirSeconds);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Power
 		current = ina219_read_current() * 1000;
 		power = ina219_read_power() * 1000;
-		printf("Current: %f\nPower: %f\n", current, power);
+		//printf("Current: %f\nPower: %f\n", current, power);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		// Wait
 		vTaskDelay(pdMS_TO_TICKS(200));
@@ -60,7 +60,8 @@ void measure_task(){
 void led_task(){
 	for(;;){
 		// Tryb czujnika ruchu
-		if(xPir){
+		if(xPir == 1){
+			printf("PIRTIME: %d\n", pirTime);
 			if(pirSeconds < pirTime)
 				led_write(dutyCycle);
 			else
@@ -108,7 +109,8 @@ void read_from_server(){
 			luxSetpoint = server_data.lux_sp;
 			
 		xPir = server_data.pir_on_off;
-		pirTime = server_data.hold_up_time;
+		printf("PIR: %d\n", xPir);
+		//pirTime = server_data.hold_up_time;
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
@@ -154,8 +156,8 @@ void app_main(void)
 	vTaskDelay(200 / portTICK_PERIOD_MS);
 	
 	// Test eepromu
-	eeprom_write(1, 0x50);
-	printf("EEPROM REG 1: %d", eeprom_read(1));
+	//eeprom_write(1, 0x50);
+	//printf("EEPROM REG 1: %d", eeprom_read(1));
 	
 	// cykliczny odczyt
 	xTaskCreatePinnedToCore(measure_task, "measure", 4096, NULL, 1, NULL, 0);

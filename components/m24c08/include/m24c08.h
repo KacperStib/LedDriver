@@ -24,11 +24,13 @@ uint16_t read_duty();
 uint8_t read_pir();
 uint8_t read_pir_time();
 uint16_t read_power_uwage();
+
 // Zapis danych
 void write_mode(uint8_t m);
 void write_duty(uint16_t d);
 void write_pir(uint8_t p);
 void write_pir_time(uint8_t pt);
 void write_power_usage(uint16_t pu);
+
 // Obliczanie zuzytej mocy
 void calc_power(float pow, uint16_t dt);

@@ -155,7 +155,12 @@ const char index_html[] = R"rawliteral(
         fetch('/setMode?value=1');
       }
     }
-    
+	
+	document.getElementById('submit').addEventListener('click', () => {
+ 	const pirEnabled = document.getElementById('pirCheckbox').checked ? 1 : 0;
+  	fetch(`/setPIR?value=${pirEnabled}`);
+	});
+
     dutySlider.addEventListener('input', (e) => {
       document.getElementById('dutyValue').innerText = e.target.value;
     });
@@ -313,6 +318,20 @@ esp_err_t set_lux_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+esp_err_t set_pir_handler(httpd_req_t *req) {
+    char param[8];
+    if (httpd_req_get_url_query_len(req) > 0) {
+        char query[100];
+        httpd_req_get_url_query_str(req, query, sizeof(query));
+        if (httpd_query_key_value(query, "value", param, sizeof(param)) == ESP_OK) {
+            server_data.pir_on_off = atoi(param) != 0;  // 0 = false, 1 = true
+            ESP_LOGI("SET_PIR", "PIR ON/OFF: %d", server_data.pir_on_off);
+        }
+    }
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
 esp_err_t get_lux_handler(httpd_req_t *req) {
     char response[16];
     //float lux = 1;
@@ -389,6 +408,13 @@ httpd_uri_t set_lux_uri = {
     .user_ctx = NULL
 };
 
+httpd_uri_t set_pir_uri = {
+    .uri = "/setPIR",
+    .method = HTTP_GET,
+    .handler = set_pir_handler,
+    .user_ctx = NULL
+};
+
 httpd_uri_t get_lux_uri = {
     .uri = "/getLux",
     .method = HTTP_GET,
@@ -458,6 +484,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &set_mode_uri);
         httpd_register_uri_handler(server, &set_lux_uri);
         httpd_register_uri_handler(server, &uri_get);
+        httpd_register_uri_handler(server, &set_pir_uri);
    		ESP_LOGI("WEBSERVER", "All URI handlers registered");
 	} else {
 	    ESP_LOGE("WEBSERVER", "Failed to start server");
