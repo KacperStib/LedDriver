@@ -19,9 +19,14 @@ esp_err_t set_duty_handler(httpd_req_t *req);
 esp_err_t get_lux_handler(httpd_req_t *req);
 esp_err_t get_current_handler(httpd_req_t *req);
 esp_err_t get_power_handler(httpd_req_t *req);
+esp_err_t get_power_usage_handler(httpd_req_t *req);
+esp_err_t reset_power_usage_handler(httpd_req_t *req);
 esp_err_t get_temp_handler(httpd_req_t *req);
 esp_err_t get_humidity_handler(httpd_req_t *req);
 esp_err_t get_pir_handler(httpd_req_t *req);
+esp_err_t get_pir_settings_handler(httpd_req_t *req);
+esp_err_t get_mode_handler(httpd_req_t *req);
+esp_err_t get_lux_sp_handler(httpd_req_t *req);
 
 // Deklaracje URI handlerów
 extern httpd_uri_t uri_get;
@@ -30,9 +35,14 @@ extern httpd_uri_t set_duty_uri;
 extern httpd_uri_t get_lux_uri;
 extern httpd_uri_t get_current_uri;
 extern httpd_uri_t get_power_uri;
+extern httpd_uri_t get_power_usage_uri;
+extern httpd_uri_t reset_power_usage_uri;
 extern httpd_uri_t get_temp_uri;
 extern httpd_uri_t get_humidity_uri;
 extern httpd_uri_t get_pir_uri;
+extern httpd_uri_t get_pir_settings_uri;
+extern httpd_uri_t get_mode_uri;
+extern httpd_uri_t get_lux_sp_uri;
 
 typedef struct {
 	uint8_t mode;
@@ -43,7 +53,8 @@ typedef struct {
 	float rh;
 	float current;
 	float power;
-	uint16_t power_usage;
+	uint32_t power_usage;
+	bool pwr_usg_rst;
 	uint16_t last_movement;
 	uint8_t pir_on_off;
 	uint8_t hold_up_time;

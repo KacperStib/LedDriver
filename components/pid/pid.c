@@ -1,8 +1,8 @@
 #include "pid.h"
 
-float kp = 0.2;
-float ki = 0.1;
-float kd = 0.05;
+float kp = 0.02;
+float ki = 0.01;
+float kd = 0.005;
 float error = 0;
 float previous_error = 0.0;
 float integral = 0.0;

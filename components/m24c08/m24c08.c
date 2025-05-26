@@ -42,11 +42,16 @@ uint8_t read_pir_time(){
 	return eeprom_read(PIR_TIME);
 }
 
-uint16_t read_power_uwage(){
-	uint8_t buf[2];
+uint32_t read_power_usage(){
+	uint8_t buf[4];
 	buf[0] = eeprom_read(POWER_USAGE1);
 	buf[1] = eeprom_read(POWER_USAGE2);
-	return (uint16_t)buf[0] * 256 + (uint16_t)buf[1];
+	buf[2] = eeprom_read(POWER_USAGE3);
+	buf[3] = eeprom_read(POWER_USAGE4);
+	return (uint32_t)buf[0] * 16777216 +  // 2^24
+           (uint32_t)buf[1] * 65536 +     // 2^16
+           (uint32_t)buf[2] * 256 +       // 2^8
+           (uint32_t)buf[3];
 }
 
 // Zapis danych
@@ -67,11 +72,9 @@ void write_pir_time(uint8_t pt){
 	eeprom_write(PIR_TIME, pt);
 }
 
-void write_power_usage(uint16_t pu){
-	eeprom_write(POWER_USAGE1, (uint8_t)(pu >> 8));  // wyższy bajt
-	eeprom_write(POWER_USAGE2, (uint8_t)(pu & 0xFF)); // niższy bajt
-}
-
-void calc_power(float pow, uint16_t dt){
-	power_used += pow * dt;
+void write_power_usage(uint32_t pu){
+    eeprom_write(POWER_USAGE1, (uint8_t)(pu >> 24));  // Najstarszy bajt (MSB)
+    eeprom_write(POWER_USAGE2, (uint8_t)(pu >> 16));   // Drugi bajt
+    eeprom_write(POWER_USAGE3, (uint8_t)(pu >> 8));    // Trzeci bajt
+    eeprom_write(POWER_USAGE4, (uint8_t)(pu));         // Najmłodszy bajt (LSB)
 }

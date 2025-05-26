@@ -2,7 +2,7 @@
 #include "ledcDriver.h"
 
 // Poczatkowa wartosc
-uint8_t dutyCycle = 128;
+uint8_t dutyCycle = 0;
 
 // Mapowanie krzywej liniowej na logarytmiczna przy rozdzielczosci 8 bit
 float mapLogCurve[255] = {  0.10, 0.10, 0.10, 0.11, 0.11, 0.11, 0.11, 0.12, 0.12, 0.12, 0.13, 0.13, 0.14, 0.14, 0.14, 0.15,
