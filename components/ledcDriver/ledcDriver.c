@@ -4,7 +4,7 @@
 // Poczatkowa wartosc
 uint8_t dutyCycle = 0;
 
-// Mapowanie krzywej liniowej na logarytmiczna przy rozdzielczosci 8 bit
+// Mapowanie krzywej liniowej na logarytmiczna przy rozdzielczosci 8 bit - todo
 float mapLogCurve[255] = {  0.10, 0.10, 0.10, 0.11, 0.11, 0.11, 0.11, 0.12, 0.12, 0.12, 0.13, 0.13, 0.14, 0.14, 0.14, 0.15,
                   0.15, 0.15 ,0.16 ,0.16 ,0.17 ,0.17, 0.18, 0.18 ,0.19 ,0.19 ,0.20 ,0.20 ,0.21 ,0.21 ,0.22 ,0.23,
                   0.23, 0.24, 0.25, 0.25, 0.26, 0.27, 0.27 ,0.28 ,0.29 ,0.30 ,0.31 ,0.31 ,0.32 ,0.33 ,0.34 ,0.35,
@@ -23,6 +23,7 @@ float mapLogCurve[255] = {  0.10, 0.10, 0.10, 0.11, 0.11, 0.11, 0.11, 0.12, 0.12
                   68.25, 70.14, 72.08, 74.08, 76.13, 78.23, 80.40, 82.62, 84.91, 87.26, 89.68, 92.16, 94.71, 97.33, 100.0
 };
 
+// Konfiguracja API
 void led_config(){
 	// Konfiguracja timera
     ledc_timer_config_t ledc_timer = {
@@ -47,6 +48,7 @@ void led_config(){
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 }
 
+// Sterowanie PWM
 void led_write(uint8_t dutyCycle){
     // Ustawienie wartosci
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, dutyCycle);

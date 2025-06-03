@@ -8,7 +8,7 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-// Inicjalizacja polaczenia do wifi
+// Inicjalizacja polaczenia do wifi (example)
 void wifi_init_sta(void) {
     esp_netif_init();
     esp_event_loop_create_default();
@@ -36,6 +36,10 @@ void wifi_init_sta(void) {
 web_server_data server_data;
 
 // HTML strona do serwowania
+// Glowny zarys z prototypu
+// Zmodyfikowane przez narzedzia sztucznej inteligencji
+// Oraz rozne ogolnodostepne szablony
+
 const char index_html[] = R"rawliteral(
 <!DOCTYPE html>
 <html lang="pl">
@@ -271,7 +275,7 @@ const char index_html[] = R"rawliteral(
       </div>
     </div>
 
-    <!-- Light Sensor -->
+    <!-- lusky -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Pomiar światła</h2>
@@ -283,7 +287,7 @@ const char index_html[] = R"rawliteral(
       </div>
     </div>
 
-    <!-- PIR Sensor -->
+    <!-- PIR -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Detekcja ruchu</h2>
@@ -310,7 +314,7 @@ const char index_html[] = R"rawliteral(
       </div>
     </div>
 
-    <!-- Current/Power -->
+    <!-- zuzycie energii -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Energia</h2>
@@ -332,7 +336,7 @@ const char index_html[] = R"rawliteral(
       </div>
     </div>
 
-    <!-- Environment -->
+    <!-- temp i rh -->
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Środowisko</h2>
@@ -351,7 +355,7 @@ const char index_html[] = R"rawliteral(
   </div>
 
   <script>
-    // Funkcje JavaScript pozostają bez zmian
+
     function switchMode(mode) {
       if (mode === 'manual') {
         document.getElementById('manualControls').style.display = 'block';
@@ -377,7 +381,7 @@ const char index_html[] = R"rawliteral(
     setLuxSlider.addEventListener('input', (e) => {
       document.getElementById('setLuxValue').innerText = e.target.value;
     });
-  
+  	
     function updateDutyCycle(value) {
       document.getElementById('dutyValue').innerText = value;
       fetch(`/setDuty?value=${value}`);
@@ -461,7 +465,7 @@ const char index_html[] = R"rawliteral(
           }
         });
     }
-    
+    // Zegar na stronie
 	function updateClock() {
 	  const now = new Date();
 	  const timeString = now.toLocaleTimeString();
@@ -489,6 +493,7 @@ const char index_html[] = R"rawliteral(
           }
         });
       
+      // Pobierz dane
       fetch('/getDuty')
         .then(response => response.text())
         .then(data => {
@@ -518,6 +523,7 @@ const char index_html[] = R"rawliteral(
           document.getElementById('pirTime').value = time;
         });
       
+      // Odswiez dane
       updateLux();
       updateCurrent();
       updatePower();
@@ -526,7 +532,8 @@ const char index_html[] = R"rawliteral(
       updateHumidity();
       updatePIR();
     }
-
+	
+	// Odswiezanie co 1000 ms
     setInterval(updateLux, 1000);
     setInterval(updateCurrent, 1000);
     setInterval(updatePower, 1000);
@@ -542,6 +549,7 @@ const char index_html[] = R"rawliteral(
 
 )rawliteral";
 
+/* ------------------------------------------------- HANDLERY -------------------------------------------------*/
 esp_err_t get_handler(httpd_req_t *req)
 {
     httpd_resp_send(req, index_html, HTTPD_RESP_USE_STRLEN);
@@ -704,7 +712,9 @@ esp_err_t get_lux_sp_handler(httpd_req_t *req) {
     httpd_resp_send(req, response, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
+/* ------------------------------------------------- HANDLERY END -------------------------------------------------*/
 
+/* ------------------------------------------------- URI -------------------------------------------------*/
 httpd_uri_t get_duty_uri = {
     .uri = "/getDuty",
     .method = HTTP_GET,
@@ -823,15 +833,19 @@ httpd_uri_t get_lux_sp_uri = {
     .handler = get_lux_sp_handler,
     .user_ctx = NULL
 };
+/* ------------------------------------------------- URI END -------------------------------------------------*/
 
 // Funkcja uruchamiająca serwer
 httpd_handle_t start_webserver(void)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 20;
+    // WAZNE !
+    config.max_uri_handlers = 20;// WAZNE !
+    // WAZNE !
     config.max_open_sockets = 7;
     httpd_handle_t server = NULL;
-
+	
+	// Rejestracja URI
     if (httpd_start(&server, &config) == ESP_OK) {
         httpd_register_uri_handler(server, &get_duty_uri);
         httpd_register_uri_handler(server, &set_duty_uri);

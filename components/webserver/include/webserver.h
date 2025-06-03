@@ -44,6 +44,7 @@ extern httpd_uri_t get_pir_settings_uri;
 extern httpd_uri_t get_mode_uri;
 extern httpd_uri_t get_lux_sp_uri;
 
+// Struktura danych webservera
 typedef struct {
 	uint8_t mode;
 	uint16_t duty;

@@ -20,24 +20,18 @@ esp_err_t ina219_power_on(float shuntVAL, float iMAX){
 	uint16_t calibrationValue;
 
     float iMaxPossible, minimumLSB;
-
+	// Obliczenie maksymalnego możliwego prądu dla danej rezystancji shunt
     iMaxPossible = 0.32f / shuntVAL;
-
     minimumLSB = iMAX / 32767;
 	
 	// While this value yields the highest resolution, it is common to select a value for
 	// the Current_LSB to the nearest round number above this value to simplify the conversion of the Current Register
 	// (04h) and Power Register (03h) to amperes and watts respectively
-    /*currentLSB = (uint16_t)(minimumLSB * 100000000);
-    currentLSB /= 100000000;
-    currentLSB /= 0.0001;
-    currentLSB = ceil(currentLSB);
-    currentLSB *= 0.0001;*/
     
+    // Mnozniki surowej wartosci z rejestrow
 	currentLSB = ceil(minimumLSB / 0.0001f) * 0.0001f;
-
     powerLSB = currentLSB * 20;
-
+	// Obliczenie wartości kalibracyjnej zgodnie ze wzorem z dokumentacji
     calibrationValue = (uint16_t)((0.04096) / (currentLSB * shuntVAL));
 	// Zapis kalibracji
 	err = i2c_write_2byte(INA219_ADDR, INA219_REG_CALIBRATION, calibrationValue);

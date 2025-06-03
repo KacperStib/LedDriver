@@ -28,7 +28,7 @@ uint8_t xPir = 0;
 uint16_t pirTime = 15;
 uint16_t luxSetpoint = 0;
 
-// Krok regulatora
+// Krok regulatora (ms)
 float dt = 200;
 
 void config_init(){
@@ -50,8 +50,8 @@ void config_init(){
 	}
 	
 	// Inicjalizacja magistrali I2C
-	if (i2c_master_init() == ESP_OK)
-		ESP_LOGE("I2c", "I2C init: OK");
+	if (i2c_master_init() != ESP_OK)
+		ESP_LOGE("I2c", "I2C init: ERROR");
 	
 	//uruchomienie BH1750
 	err = bh1750_power_on();
@@ -80,7 +80,7 @@ void config_init(){
 
 void measure_task(){
 	for(;;){
-		// Odczyt lux - tylko jesli nie uzywamy PIDa
+		// Odczyt lux - tylko jesli nie uzywamy PIDa (w PIDZie szybszy cykl)
 		if(!xAuto){
 			lux = bh1750_read();
 			vTaskDelay(pdMS_TO_TICKS(100));
@@ -103,7 +103,7 @@ void measure_task(){
 		vTaskDelay(pdMS_TO_TICKS(100));
 		
 		// Przerwa
-		vTaskDelay(pdMS_TO_TICKS(200));
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
@@ -118,7 +118,7 @@ void led_task(){
  				led_write(0);
 		}
 		
-		// Tryb manualny
+		// Tryb manualny (bez czujki ruchu)
 		else
 			led_write(dutyCycle);
 			
@@ -130,7 +130,7 @@ void pid_task(){
 	for(;;){
 		if(xAuto){
 			dutyCycle = pid_compute(luxSetpoint, lux, dt / 1000);
-			// Lux
+			// Lux - odczyt co dt regulatora
 			lux = bh1750_read();
 		}
 		//printf("LUX SP: %d, DUTY: %d\n", luxSetpoint,dutyCycle);
@@ -145,10 +145,12 @@ void write_to_server(){
 		server_data.rh = RH;
 		server_data.current = current;
 		server_data.power = power;
+		// reset zuzycia energii w pamieci
 		if (server_data.pwr_usg_rst){
 			powerUsed = 0;
 			server_data.pwr_usg_rst = false;
 		}
+		
 		server_data.power_usage = powerUsed;
 		server_data.last_movement = pirSeconds;
 		vTaskDelay(pdMS_TO_TICKS(1000));
@@ -173,6 +175,7 @@ void read_from_server(){
 void eeprom_handler(){
 	// Odczyt przy starcie
 	server_data.mode = read_mode();
+	// Zaleznie od trybu
 	if (server_data.mode == 0)
 		server_data.duty = read_duty() / 2.56;
 	else
@@ -185,6 +188,7 @@ void eeprom_handler(){
  	
 	for(;;){
 		write_mode(xAuto);
+		// Zaleznie od trybu
 		if (xAuto == 0)
 			write_duty(dutyCycle);
 		else
@@ -195,6 +199,7 @@ void eeprom_handler(){
  		
  		write_power_usage((uint32_t)powerUsed);
  		
+ 		// Obliczanie zuzytej energii (mWH) Energia = P * t [h]
 		powerUsed += power * (1.0 / 3600.0);
 		printf("PowerUsed: %f mWh\n", powerUsed);
 		vTaskDelay(pdMS_TO_TICKS(1000));
@@ -207,16 +212,16 @@ void app_main(void)
 	config_init();
 	
 	// Cykliczne taski
-	// Pomiary
+	// Pomiary - 1 s
 	xTaskCreatePinnedToCore(measure_task, "measure", 4096, NULL, 1, NULL, 0);
-	// Sterowanie LED
+	// Sterowanie LED - dt (200ms)
 	xTaskCreatePinnedToCore(led_task, "led", 4096, NULL, 2, NULL, 0);
-	// Regulator PID - tryb auto
+	// Regulator PID - tryb auto - dt (200ms)
 	xTaskCreatePinnedToCore(pid_task, "pid", 4096, NULL, 3, NULL, 0);
-	// Zapis wartosci na WebServer
+	// Zapis wartosci na WebServer - 1s
 	xTaskCreatePinnedToCore(write_to_server, "server_write", 4096, NULL, 4, NULL, 0);
-	// Odczyt wartosci z WebServera
+	// Odczyt wartosci z WebServera - 1s
 	xTaskCreatePinnedToCore(read_from_server, "server_read", 4096, NULL, 5, NULL, 0);
-	// Zapis do eeprom
+	// Zapis do eeprom - 1s
 	xTaskCreatePinnedToCore(eeprom_handler, "eeprom", 4096, NULL, 6, NULL, 0);
 }

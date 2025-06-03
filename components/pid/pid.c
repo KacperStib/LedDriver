@@ -1,5 +1,6 @@
 #include "pid.h"
 
+// Zmienne regulatora
 float kp = 0.02;
 float ki = 0.01;
 float kd = 0.005;
@@ -22,10 +23,9 @@ uint8_t pid_compute(float setpoint, float measured, float dt) {
 	
 	//printf("err=%.2f, int=%.2f, der=%.2f, out=%.2f\n", error, integral, derivative, output);
 	
-    // Ograniczenie sterowania do zakresu PWM 0–255
+    // Ograniczenie sterowania do zakresu PWM 8 bit 0–255
     if (output > 255.0) output = 255.0;
     else if (output < 0.0) output = 0.0;
     
-
     return (uint8_t)output;
 }
