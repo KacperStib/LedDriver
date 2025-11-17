@@ -8,28 +8,39 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+uint8_t newValue = 0;
+
 // Inicjalizacja polaczenia do wifi (example)
 void wifi_init_sta(void) {
     esp_netif_init();
     esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
+    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
 
     esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_start();
 
-    esp_wifi_set_ps(WIFI_PS_NONE);
     wifi_config_t wifi_config = {
         .sta = {
             .ssid = WIFI_SSID,
             .password = WIFI_PASS,
         },
     };
-
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+
+    // Ustawiamy statyczne IP:
+    esp_netif_ip_info_t ip_info;
+    ip_info.ip.addr = esp_ip4addr_aton("192.168.0.151");
+    ip_info.netmask.addr = esp_ip4addr_aton("255.255.255.0");
+    ip_info.gw.addr = esp_ip4addr_aton("192.168.0.1");
+    esp_netif_dhcpc_stop(sta_netif);              // wyłącz DHCP klienta
+    esp_netif_set_ip_info(sta_netif, &ip_info);  // ustaw statyczne IP
+
+    esp_wifi_start();
     esp_wifi_connect();
-    ESP_LOGI(TAG, "Connecting to WiFi...");
+
+    ESP_LOGI(TAG, "Connecting to WiFi with static IP...");
 }
 
 // Struktura danych
@@ -251,38 +262,26 @@ const char index_html[] = R"rawliteral(
         <div class="radio-group">
           <label class="radio-option">
             <input type="radio" name="mode" value="manual" id="manualMode" checked onchange="switchMode('manual')">
-            Manualny
+            Jasność
           </label>
           <label class="radio-option">
             <input type="radio" name="mode" value="auto" id="autoMode" onchange="switchMode('auto')">
-            Automatyczny
+            Wygaszenie
           </label>
         </div>
         
         <div id="manualControls">
           <div class="form-group">
-            <label for="dutySlider">Wartość zadana: <span id="dutyValue">50</span>%</label>
-            <input type="range" min="0" max="100" value="50" id="dutySlider" onchange="updateDutyCycle(this.value)">
+            <label for="dutySlider">Wartość zadana: <span id="dutyValue">0</span>%</label>
+            <input type="range" min="0" max="100" value="0" id="dutySlider" onchange="updateDutyCycle(this.value)">
           </div>
         </div>
 
         <div id="autoControls" style="display: none;">
           <div class="form-group">
-            <label for="setLuxSlider">Wartość zadana: <span id="setLuxValue">200</span> <span class="unit">lx</span></label>
-            <input type="range" min="0" max="1000" value="200" id="setLuxSlider" onchange="updateSetLux(this.value)">
+            <label for="setLuxSlider">Wartość zadana: <span id="setLuxValue">0</span>%</span></label>
+            <input type="range" min="0" max="100" value="0" id="setLuxSlider" onchange="updateSetLux(this.value)">
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- lusky -->
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title">Pomiar światła</h2>
-      </div>
-      <div class="card-body">
-        <div class="metric">
-          <div class="value"><span id="luxValue">0.0</span> <span class="unit">lx</span></div>
         </div>
       </div>
     </div>
@@ -392,15 +391,6 @@ const char index_html[] = R"rawliteral(
       fetch(`/setLux?value=${value}`);
     }
 
-    function updateLux() {
-      fetch('/getLux')
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById('luxValue').innerText = data;
-          document.getElementById('luxTime').innerText = new Date().toLocaleTimeString();
-        });
-    }
-
     function updateCurrent() {
       fetch('/getCurrent')
         .then(response => response.text())
@@ -507,13 +497,6 @@ const char index_html[] = R"rawliteral(
           document.getElementById('setLuxValue').innerText = data;
           document.getElementById('setLuxSlider').value = data;
         });
-
-      fetch('/getLux')
-        .then(response => response.text())
-        .then(value => {
-          document.getElementById('setLuxValue').innerText = value;
-          document.getElementById('setLuxSlider').value = value;
-        });
       
       fetch('/getPIRSettings')
         .then(response => response.text())
@@ -524,7 +507,6 @@ const char index_html[] = R"rawliteral(
         });
       
       // Odswiez dane
-      updateLux();
       updateCurrent();
       updatePower();
       updatePowerUsage();
@@ -534,7 +516,6 @@ const char index_html[] = R"rawliteral(
     }
 	
 	// Odswiezanie co 1000 ms
-    setInterval(updateLux, 1000);
     setInterval(updateCurrent, 1000);
     setInterval(updatePower, 1000);
     setInterval(updatePowerUsage, 1000);
@@ -574,7 +555,9 @@ esp_err_t set_duty_handler(httpd_req_t *req) {
             //ESP_LOGI("SET_DUTY", "Nowa wartosc: %d", duty);
         }
     }
-
+    // Nowa wartosc
+	newValue |= (1 << 1);
+	
     httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
@@ -604,6 +587,8 @@ esp_err_t set_lux_handler(httpd_req_t *req) {
             //ESP_LOGI("SET_SET_LUX", "Nowa wartość zadana luksów: %.1f", set_lux);
         }
     }
+    // Nowa wartosc
+	newValue |= (1 << 2);
     httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
@@ -618,11 +603,15 @@ esp_err_t set_pir_handler(httpd_req_t *req) {
         if (httpd_query_key_value(query, "value", value_param, sizeof(value_param)) == ESP_OK) {
             server_data.pir_on_off = atoi(value_param) != 0;
             ESP_LOGI("SET_PIR", "PIR ON/OFF: %d", server_data.pir_on_off);
+            // Nowa wartosc
+			newValue |= (1 << 3);
         }
 
         if (httpd_query_key_value(query, "time", time_param, sizeof(time_param)) == ESP_OK) {
             server_data.hold_up_time = atoi(time_param);
             ESP_LOGI("SET_PIR", "PIR hold_up_time: %d", server_data.hold_up_time);
+            // Nowa wartosc
+			newValue |= (1 << 4);
         }
     }
 

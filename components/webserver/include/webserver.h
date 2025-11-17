@@ -5,6 +5,7 @@
 #include "esp_netif.h"
 #include "esp_event.h"
 #include "esp_wifi.h"
+#include "esp_netif_ip_addr.h"
 
 #define WIFI_SSID      "STIBDOM"
 #define WIFI_PASS      "kacper24"
@@ -60,6 +61,9 @@ typedef struct {
 	uint8_t pir_on_off;
 	uint8_t hold_up_time;
 } web_server_data ;
+
+// Nowe wartosci
+extern uint8_t newValue;
 
 extern web_server_data server_data;
 
