@@ -4,7 +4,8 @@
 #define INTERVAL 5000 // Interwal odczytu z czujnikow
 
 // Konfiguracja PWM
-const int ledPin = 10;
+const int ledPin = 10; // Protype
+//const int ledPin = 0; // PCB
 const int pwmChannel = 0;
 const int pwmFreq = 5000;
 const int pwmResolution = 8;
@@ -23,7 +24,8 @@ float temperature = 0;
 float humidity = 0;
 
 // Zmienne do czujnika PIR
-uint8_t pirPin = 6;
+uint8_t pirPin = 6; // Protype
+//uint8_t pirPin = 1; // PCB
 uint64_t lastTrigger = 0;
 uint32_t pirSeconds = 0;
 

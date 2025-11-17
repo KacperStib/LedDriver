@@ -30,8 +30,8 @@ extern uint64_t lastTrigger;
 extern uint32_t pirSeconds;
 
 // Konfiguracja Wi-Fi
-const char* ssid = "STIBDOM";       
-const char* password = "kacper24";
+const char* ssid = "ssid";       
+const char* password = "psswd";
 
 // Statyczna konfiguracja sieci
 IPAddress local_IP(192, 168, 0, 180);        // Statyczny adres IP
